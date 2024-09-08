@@ -10,11 +10,13 @@ import { useAuthActions } from "@convex-dev/auth/react";
 
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 interface SignInCardProps{
   setState:(state:SignInFlow)=>void
 }
 export const SignInCard = ({setState}:SignInCardProps) => {
+  const router = useRouter()
   const {signIn} = useAuthActions()
 
   const[email,setEmail] = useState("")
@@ -25,16 +27,24 @@ export const SignInCard = ({setState}:SignInCardProps) => {
   const onPasswordSignIn=(e:React.FormEvent<HTMLFormElement>)=>{
     e.preventDefault();
     setPending(true)
-    signIn("password",{email, password, flow:"signIn"}).catch(()=>{
+    signIn("password",{email, password, flow:"signIn"})
+    .then(()=>{
+      router.push("/")
+    })
+    .catch(()=>{
        setError("Invalid email or password")
-    }).finally(()=>{
-      setPending(true)
+    })
+    .finally(()=>{
+      setPending(false)
     })
     
   }
 
   const handleProviderSignIn = (value:"github"|"google")=>{
     signIn(value)
+    .finally(()=>{
+      setPending(false)
+    })
   }
   return ( 
    <Card className=" w-full h-full p-8">
@@ -55,7 +65,7 @@ export const SignInCard = ({setState}:SignInCardProps) => {
      <CardContent className=" relative space-y-5 px-0 pb-0">
        <form action="" className=" space-y-2.5 relative" onSubmit={onPasswordSignIn}>
          <Input
-           disabled={false}
+           disabled={pending}
            value={email}
            onChange={(e)=>setEmail(e.target.value)}
            placeholder="email"
@@ -63,7 +73,7 @@ export const SignInCard = ({setState}:SignInCardProps) => {
            required
            />
          <Input
-           disabled={false}
+           disabled={pending}
            value={password}
            onChange={(e)=>setPassword(e.target.value)}
            placeholder="Password"
@@ -74,7 +84,7 @@ export const SignInCard = ({setState}:SignInCardProps) => {
             type="submit"
             className=" w-full"
             size={'lg'}
-            disabled={false}
+            disabled={pending}
             >
             Continue
            </Button>
@@ -82,7 +92,7 @@ export const SignInCard = ({setState}:SignInCardProps) => {
        <Separator />
        <div className=" flex flex-col gap-y-2.5">
          <Button
-          disabled={false}
+          disabled={pending}
           onClick={()=>handleProviderSignIn("google")}
           variant={"outline"}
           size={"lg"}
@@ -93,7 +103,7 @@ export const SignInCard = ({setState}:SignInCardProps) => {
            Continue with google
          </Button>
          <Button
-          disabled={false}
+          disabled={pending}
           onClick={()=>handleProviderSignIn("github")}
           variant={"outline"}
           size={"lg"}

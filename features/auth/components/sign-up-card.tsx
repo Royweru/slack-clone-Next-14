@@ -17,13 +17,17 @@ import { SignInFlow } from "../types";
 
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 interface SignUpCardProps {
   setState: (state: SignInFlow) => void;
 }
 export const SignUpCard = ({ setState }: SignUpCardProps) => {
+  const router = useRouter()
   const { signIn } = useAuthActions();
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+
   const [password, setPassword] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
   const [pending, setPending] = useState(false);
@@ -31,18 +35,27 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
 
   const onPasswordSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPending(true);
-    signIn("password", { email, password, flow: "signIn" })
-      .catch(() => {
-        setError("Invalid email or password");
-      })
-      .finally(() => {
-        setPending(false);
-      });
+    if( password!==confirmPwd){ 
+      setError("Passwords don't match")
+      return;
+    }
+    setPending(true)
+    signIn("password",{name,email,password,flow:"signUp"})
+    .then(()=>{
+      router.push("/")
+    })
+    .catch(()=>{
+      setError("Something went wrong")
+    }).finally(()=>{
+      setPending(false)
+    })
   };
 
   const handleProviderSignUp = (value: "github" | "google") => {
-    signIn(value);
+    setPending(true)
+    signIn(value).finally(()=>{
+      setPending(false)
+    });
   };
 
   return (
@@ -54,10 +67,26 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
         </CardDescription>
       </CardHeader>
       {!!error && (
-        <div className=" bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-sm"></div>
+        <div className=" bg-destructive/15 p-3 rounded-md flex items-center gap-x-2 text-sm">
+          <p>
+            {error}
+          </p>
+        </div>
       )}
       <CardContent className=" relative space-y-5 px-0 pb-0">
-        <form action="" className=" space-y-2.5 relative">
+        <form 
+        action=""
+         className=" space-y-2.5 relative"
+          onSubmit={onPasswordSignUp}
+         >
+            <Input
+            disabled={pending}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Full name"
+            type="text"
+            required
+          />
           <Input
             disabled={pending}
             value={email}
@@ -66,6 +95,7 @@ export const SignUpCard = ({ setState }: SignUpCardProps) => {
             type="email"
             required
           />
+        
           <Input
             disabled={pending}
             value={password}
