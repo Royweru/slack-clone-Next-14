@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from "react";
-import { Card, CardDescription, CardHeader,CardContent } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader,CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,8 +16,22 @@ interface SignInCardProps{
 }
 export const SignInCard = ({setState}:SignInCardProps) => {
   const {signIn} = useAuthActions()
+
   const[email,setEmail] = useState("")
   const[password,setPassword] = useState("")
+  const[pending,setPending] = useState(false)
+  const[error,setError] = useState("")
+
+  const onPasswordSignIn=(e:React.FormEvent<HTMLFormElement>)=>{
+    e.preventDefault();
+    setPending(true)
+    signIn("password",{email, password, flow:"signIn"}).catch(()=>{
+       setError("Invalid email or password")
+    }).finally(()=>{
+      setPending(true)
+    })
+    
+  }
 
   const handleProviderSignIn = (value:"github"|"google")=>{
     signIn(value)
@@ -25,13 +39,21 @@ export const SignInCard = ({setState}:SignInCardProps) => {
   return ( 
    <Card className=" w-full h-full p-8">
      <CardHeader className=" px-0 pt-0">
-      Login to continue
+      <CardTitle>
+        Login to continue
+      </CardTitle>
+      <CardDescription>
+        Use your email or another service to continue 
+      </CardDescription>
      </CardHeader>
-     <CardDescription>
-      Use your email or another service to continue
-     </CardDescription>
+   {!!error&&(
+    <div className=" bg-destructive/15 p-3
+     rounded-md flex items-center gap-x-2 text-sm text-destructive mb-6">
+       <p>{error}</p>
+    </div>
+   )}
      <CardContent className=" relative space-y-5 px-0 pb-0">
-       <form action="" className=" space-y-2.5 relative">
+       <form action="" className=" space-y-2.5 relative" onSubmit={onPasswordSignIn}>
          <Input
            disabled={false}
            value={email}
