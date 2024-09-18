@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 
 export default function Home() {
 
-  const [open,setOpen] = useCreateWorkspaceModal()
+  const [open,setOpen] = useCreateWorkspaceModal() 
   const router = useRouter()
 
   const { signOut } = useAuthActions();
