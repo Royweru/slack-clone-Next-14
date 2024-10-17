@@ -64,7 +64,7 @@ const JoinPage = ({ params }: JoinPageProps) => {
             className="
                 text-md text-muted-foreground"
           >
-            Enter the workspace name to join
+            Enter the workspace code to join
           </p>
         </div>
         <VerificationInput

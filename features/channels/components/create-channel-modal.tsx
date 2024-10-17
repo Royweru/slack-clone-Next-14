@@ -1,43 +1,63 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCreateChannelModal } from "../store/use-create-channel-modal";
 
-
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 
 import { Button } from "@/components/ui/button";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import { useCreateChannel } from "../api/use-create-channel";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export const CreateChannelModal = () => {
-    const {mutate,isPending} = useCreateChannel()
-    const workspaceId = useWorkspaceId()
-    const[open,setOpen] = useCreateChannelModal()
-    const [name,setName] = useState("")
-    const handleChange = (e:React.ChangeEvent<HTMLInputElement>)=>{
-        const value = e.target.value.replace(/\s+/g,"-").toLowerCase()
-        setName(value)
-    }
-    const handleClose = ()=>{
-        setName("")
-        setOpen(false)
-    }
-    const handelSubmit = (e:React.ChangeEvent<HTMLFormElement>)=>{
-        e.preventDefault()
-        mutate({name,workspaceId},{
-            onSuccess(){
-                handleClose()
+  const router = useRouter();
+  const { mutate, isPending } = useCreateChannel();
+  const workspaceId = useWorkspaceId();
+  const [open, setOpen] = useCreateChannelModal();
+  const [name, setName] = useState("");
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\s+/g, "-").toLowerCase();
+    setName(value);
+  };
+  const handleClose = () => {
+    setName("");
+    setOpen(false);
+  };
+  const handelSubmit = (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    mutate(
+      { name, workspaceId },
+      {
+        onSuccess(id) {
+          router.push(`/workspace/${workspaceId}/channel/${id}`);
+          toast.success("channel created", {
+            style: {
+              backgroundColor: "green",
             },
-        })
-    }
+          });
+          handleClose();
+        },
+        onError() {
+          toast.error("Failed to create channel");
+        },
+      }
+    );
+  };
   return (
-    <Dialog open={open}  onOpenChange={handleClose}>
-       <DialogContent>
-         <DialogHeader>
-            <DialogTitle>Add a channel</DialogTitle>
-         </DialogHeader>
-         <form onSubmit={handelSubmit} action="" className=" space-y-4">
-            <Input
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add a channel</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handelSubmit} action="" className=" space-y-4">
+          <Input
             value={name}
             disabled={isPending}
             onChange={handleChange}
@@ -46,14 +66,12 @@ export const CreateChannelModal = () => {
             minLength={3}
             maxLength={80}
             placeholder="e.g plan budget"
-            />
-            <div className=" flex justify-end">
-                <Button  type="submit">
-                    Create
-                </Button>
-            </div>
-         </form>
-       </DialogContent>
+          />
+          <div className=" flex justify-end">
+            <Button type="submit">Create</Button>
+          </div>
+        </form>
+      </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
